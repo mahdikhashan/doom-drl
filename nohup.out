@@ -2,3 +2,31 @@ Traceback (most recent call last):
   File "/root/user/doom-drl/doom.py", line 98, in <module>
     from doom_arena.reward import VizDoomReward
 ModuleNotFoundError: No module named 'doom_arena'
+Host 45119
+Player 45119
+Traceback (most recent call last):
+  File "/root/user/doom-drl/doom.py", line 205, in <module>
+    run = wandb.init(
+          ^^^^^
+NameError: name 'wandb' is not defined
+wandb: Currently logged in as: mahdikhashan1 (nano-apps) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+/usr/local/lib/python3.11/dist-packages/wandb/analytics/sentry.py:259: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}  # noqa
+/usr/local/lib/python3.11/dist-packages/wandb/analytics/sentry.py:259: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}  # noqa
+wandb: Tracking run with wandb version 0.19.11
+wandb: Run data is saved locally in /root/user/doom-drl/wandb/run-20250608_153246-9m8snihy
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run dainty-morning-1
+wandb: ⭐️ View project at https://wandb.ai/nano-apps/doom-rl
+wandb: 🚀 View run at https://wandb.ai/nano-apps/doom-rl/runs/9m8snihy
+Host 34879
+Player 34879
+Traceback (most recent call last):
+  File "/root/user/doom-drl/doom.py", line 230, in <module>
+    a, b, c = reward_fn(gv, gv_pre)
+              ^^^^^^^^^^^^^^^^^^^^^
+TypeError: YourReward.__call__() missing 2 required positional arguments: 'game_var_old' and 'player_id'
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33mdainty-morning-1[0m at: [34mhttps://wandb.ai/nano-apps/doom-rl/runs/9m8snihy[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20250608_153246-9m8snihy/logs[0m

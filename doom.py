@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from gym import Env
 
+import wandb
 
 
 @torch.no_grad
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     EPSILON_DECAY = 0.995
     N_EPOCHS = 50
 
-    device = "cpu"
+    device = "cuda"
     DTYPE = torch.float32
 
     from doom_arena.reward import VizDoomReward
@@ -104,10 +105,8 @@ if __name__ == "__main__":
 
         def __call__(
             self,
-            vizdoom_reward: float,
             game_var: Dict[str, float],
             game_var_old: Dict[str, float],
-            player_id: int,
         ) -> Tuple[float, float, float]:
             """
             Custom reward function used by both training and evaluation.
