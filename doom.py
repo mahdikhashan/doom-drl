@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from gym import Env
+import os
 
 import wandb
 
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     EPISODE_TIMEOUT = 1000
     # TODO: model hyperparams
     GAMMA = 0.99
-    EPISODES = 1000
+    EPISODES = 200
     BATCH_SIZE = 32
     REPLAY_BUFFER_SIZE = 10_000
     LEARNING_RATE = 1e-5
@@ -92,6 +93,7 @@ if __name__ == "__main__":
     EPSILON_END = 0.1
     EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
+    LOAD_CHECKPOINT_PATH = "checkpoints/model_ep100.pt"
 
     device = "cuda"
     DTYPE = torch.float32
@@ -119,12 +121,12 @@ if __name__ == "__main__":
             self._step += 1
             _ = vizdoom_reward, player_id  # unused
 
-            # rwd_hit = 2.0 * (game_var["HITCOUNT"] - game_var_old["HITCOUNT"])
+            rwd_hit = 2.0 * (game_var["HITCOUNT"] - game_var_old["HITCOUNT"])
             rwd_dmg = 1.0 * (game_var.get("DAMAGECOUNT", 0.0) - game_var_old.get("DAMAGECOUNT", 0.0))
             rwd_hit_taken = -0.1 * (game_var["HITS_TAKEN"] - game_var_old["HITS_TAKEN"])
             rwd_frag = 100.0 * (game_var["FRAGCOUNT"] - game_var_old["FRAGCOUNT"])
 
-            return rwd_dmg, rwd_hit_taken, rwd_frag
+            return rwd_dmg, rwd_hit_taken, rwd_frag, rwd_hit
 
 
     class DQN(nn.Module):
@@ -188,9 +190,12 @@ if __name__ == "__main__":
         hidden=64,  # change or ignore
     ).to(device, dtype=DTYPE)
 
+    if os.path.exists(LOAD_CHECKPOINT_PATH):
+        model.load_state_dict(torch.load(LOAD_CHECKPOINT_PATH, map_location=device))
+
     from copy import deepcopy
     model_tgt  = deepcopy(model).to(device)
-    
+
     optimizer  = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     scheduler  = torch.optim.lr_scheduler.ExponentialLR(optimizer, GAMMA)
 
@@ -209,10 +214,12 @@ if __name__ == "__main__":
         project="doom-rl",
         config={
             "learning_rate": LEARNING_RATE,
-            "architecture": "CNN",
+            "architecture": "DQN",
             "episodes": EPISODES,
         },
     )
+
+    os.makedirs("checkpoints", exist_ok=True)
 
     for episode in range(EPISODES):
         # TODO(mahdi): rename obs, what does it mean?
@@ -228,8 +235,7 @@ if __name__ == "__main__":
             # reward selection and scaling
             # TODO(mahdi): ...
             gv, gv_pre = env.envs[0].unwrapped._game_vars, env.envs[0].unwrapped._game_vars_pre
-            a, b, c = reward_fn(_, gv, gv_pre, 1)
-            custom_rwd = a + b + c
+            custom_rwd = sum(reward_fn(_, gv, gv_pre, 1))
             run.log({"custom_rwd": custom_rwd})
 
             # work on replay buffer
@@ -267,5 +273,27 @@ if __name__ == "__main__":
         print(f"Ep {episode+1:03}: return {ep_return:6.1f}  |  ε {epsilon:.3f}")
 
         run.log({"reward": ep_return, "episode": episode, "epsilon": epsilon})
+
+        if (episode + 1) % 100 == 0:
+            checkpoint_path = f"checkpoints/model_ep{episode+1}.pt"
+            torch.save(model.state_dict(), checkpoint_path)
+
+            artifact = wandb.Artifact(
+                name=f"doom-model-ep{episode+1}",
+                type="model",
+                description=f"DQN model checkpoint at episode {episode+1}",
+                metadata={
+                    "episode": episode + 1,
+                    "return": ep_return,
+                    "epsilon": epsilon,
+                    "loss": loss.item() if 'loss' in locals() else -1,
+                }
+            )
+
+            artifact.add_file(local_path=checkpoint_path)
+
+            run.log_artifact(artifact)
+            print(f"--- Logged checkpoint to W&B at episode {episode+1} ---")
+
 
     run.finish()
