@@ -80,17 +80,17 @@ if __name__ == "__main__":
     }
 
     N_STACK_FRAMES = 1
-    NUM_BOTS = 4
+    NUM_BOTS = 1
     EPISODE_TIMEOUT = 1000
     # TODO: model hyperparams
-    GAMMA = 0.95
-    EPISODES = 100
+    GAMMA = 0.99
+    EPISODES = 1000
     BATCH_SIZE = 32
     REPLAY_BUFFER_SIZE = 10_000
-    LEARNING_RATE = 1e-4
+    LEARNING_RATE = 1e-5
     EPSILON_START = 1.0
     EPSILON_END = 0.1
-    EPSILON_DECAY = 0.995
+    EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
 
     device = "cuda"
@@ -105,8 +105,10 @@ if __name__ == "__main__":
 
         def __call__(
             self,
+            vizdoom_reward: float,
             game_var: Dict[str, float],
             game_var_old: Dict[str, float],
+            player_id: int,
         ) -> Tuple[float, float, float]:
             """
             Custom reward function used by both training and evaluation.
@@ -117,11 +119,12 @@ if __name__ == "__main__":
             self._step += 1
             _ = vizdoom_reward, player_id  # unused
 
-            rwd_hit = 2.0 * (game_var["HITCOUNT"] - game_var_old["HITCOUNT"])
+            # rwd_hit = 2.0 * (game_var["HITCOUNT"] - game_var_old["HITCOUNT"])
+            rwd_dmg = 1.0 * (game_var.get("DAMAGECOUNT", 0.0) - game_var_old.get("DAMAGECOUNT", 0.0))
             rwd_hit_taken = -0.1 * (game_var["HITS_TAKEN"] - game_var_old["HITS_TAKEN"])
             rwd_frag = 100.0 * (game_var["FRAGCOUNT"] - game_var_old["FRAGCOUNT"])
 
-            return rwd_hit, rwd_hit_taken, rwd_frag
+            return rwd_dmg, rwd_hit_taken, rwd_frag
 
 
     class DQN(nn.Module):
@@ -225,7 +228,7 @@ if __name__ == "__main__":
             # reward selection and scaling
             # TODO(mahdi): ...
             gv, gv_pre = env.envs[0].unwrapped._game_vars, env.envs[0].unwrapped._game_vars_pre
-            a, b, c = reward_fn(gv, gv_pre)
+            a, b, c = reward_fn(_, gv, gv_pre, 1)
             custom_rwd = a + b + c
             run.log({"custom_rwd": custom_rwd})
 
@@ -262,5 +265,7 @@ if __name__ == "__main__":
         scheduler.step()
         epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
         print(f"Ep {episode+1:03}: return {ep_return:6.1f}  |  ε {epsilon:.3f}")
+
+        run.log({"reward": ep_return, "episode": episode, "epsilon": epsilon})
 
     run.finish()
