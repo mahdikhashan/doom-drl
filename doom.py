@@ -5,6 +5,89 @@ import os
 
 import wandb
 
+import torchvision.models as models
+
+
+class ResNetDuelingDQN(nn.Module):
+    def __init__(self, input_dim: int, action_space: int, hidden: int = 512):
+        super().__init__()
+
+        resnet = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        original_conv1 = resnet.conv1
+        self.encoder_conv1 = nn.Conv2d(
+            in_channels=input_dim,
+            out_channels=original_conv1.out_channels,
+            kernel_size=original_conv1.kernel_size,
+            stride=original_conv1.stride,
+            padding=original_conv1.padding,
+            bias=False
+        )
+
+        with torch.no_grad():
+            self.encoder_conv1.weight[:, :original_conv1.in_channels, :, :] = original_conv1.weight.clone()
+
+        self.encoder_body = nn.Sequential(*list(resnet.children())[1:-2])
+        resnet_feature_size = 8192
+
+        self.value_stream = nn.Sequential(
+            nn.Linear(resnet_feature_size, hidden),
+            nn.ReLU(),
+            nn.Linear(hidden, 1)
+        )
+
+        self.advantage_stream = nn.Sequential(
+            nn.Linear(resnet_feature_size, hidden),
+            nn.ReLU(),
+            nn.Linear(hidden, action_space)
+        )
+
+    def forward(self, frame: torch.Tensor) -> torch.Tensor:
+        x = self.encoder_conv1(frame)
+        x = self.encoder_body(x)
+        # flatten the features to a vector
+        features = x.view(x.size(0), -1)
+
+        values = self.value_stream(features)
+        advantages = self.advantage_stream(features)
+
+        # dueling formula
+        q_values = values + (advantages - advantages.mean(dim=1, keepdim=True))
+
+        return q_values
+
+class DQN(nn.Module):
+    """
+    Deep-Q Network template.
+
+    Expected behaviour
+    ------------------
+    forward(frame)      # frame: (B, C, H, W)  →  Q-values: (B, num_actions)
+
+    What to add / change
+    --------------------
+    • Replace the two `NotImplementedError` lines.
+    • Build an encoder (Conv2d / Conv3d) + a head (MLP or duelling).
+    • Feel free to use residual blocks from `agents/utils.py` or any design you like.
+    """
+
+    def __init__(self, input_dim: int, action_space: int, hidden: int = 128):
+        super().__init__()
+        self.encoder = nn.Sequential(
+            nn.Conv2d(input_dim, 32, 8, stride=4), nn.ReLU(),
+            nn.Conv2d(32, 64, 4, stride=2),       nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=1),       nn.ReLU(),
+        )
+        self.head = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64 * 12 * 12, hidden), nn.ReLU(),
+            nn.Linear(hidden, action_space),
+        )
+
+    def forward(self, frame: torch.Tensor) -> torch.Tensor:
+        x = self.encoder(frame)
+        x = self.head(x)
+        return x
+
 
 @torch.no_grad
 def epsilon_greedy(
@@ -74,7 +157,7 @@ if __name__ == "__main__":
         # NOTE: "algo_type" defaults to POLICY in evaluation script!
         "algo_type": "QVALUE",  # OPTIONAL, change to POLICY if using policy-based (eg PPO)
         "n_stack_frames": 1,
-        "extra_state": ["depth"],
+        "extra_state": ["depth", "labels"],
         "hud": "none",
         "crosshair": True,
         "screen_format": 8 if USE_GRAYSCALE else 0,
@@ -85,17 +168,17 @@ if __name__ == "__main__":
     EPISODE_TIMEOUT = 1000
     # TODO: model hyperparams
     GAMMA = 0.99
-    EPISODES = 200
+    EPISODES = 10
     BATCH_SIZE = 32
     REPLAY_BUFFER_SIZE = 10_000
-    LEARNING_RATE = 1e-5
+    LEARNING_RATE = 1e-4
     EPSILON_START = 1.0
     EPSILON_END = 0.1
     EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
-    LOAD_CHECKPOINT_PATH = "checkpoints/model_ep100.pt"
+    # LOAD_CHECKPOINT_PATH = "model_ep500_2_bot_lr1e_6.pt"
 
-    device = "cuda"
+    device = "cpu"
     DTYPE = torch.float32
 
     from doom_arena.reward import VizDoomReward
@@ -121,46 +204,12 @@ if __name__ == "__main__":
             self._step += 1
             _ = vizdoom_reward, player_id  # unused
 
-            rwd_hit = 2.0 * (game_var["HITCOUNT"] - game_var_old["HITCOUNT"])
+            # rwd_hit = 2.0 * (game_var["HITCOUNT"] - game_var_old["HITCOUNT"])
             rwd_dmg = 1.0 * (game_var.get("DAMAGECOUNT", 0.0) - game_var_old.get("DAMAGECOUNT", 0.0))
             rwd_hit_taken = -0.1 * (game_var["HITS_TAKEN"] - game_var_old["HITS_TAKEN"])
             rwd_frag = 100.0 * (game_var["FRAGCOUNT"] - game_var_old["FRAGCOUNT"])
 
-            return rwd_dmg, rwd_hit_taken, rwd_frag, rwd_hit
-
-
-    class DQN(nn.Module):
-        """
-        Deep-Q Network template.
-
-        Expected behaviour
-        ------------------
-        forward(frame)      # frame: (B, C, H, W)  →  Q-values: (B, num_actions)
-
-        What to add / change
-        --------------------
-        • Replace the two `NotImplementedError` lines.
-        • Build an encoder (Conv2d / Conv3d) + a head (MLP or duelling).
-        • Feel free to use residual blocks from `agents/utils.py` or any design you like.
-        """
-
-        def __init__(self, input_dim: int, action_space: int, hidden: int = 128):
-            super().__init__()
-            self.encoder = nn.Sequential(
-                nn.Conv2d(input_dim, 32, 8, stride=4), nn.ReLU(),
-                nn.Conv2d(32, 64, 4, stride=2),       nn.ReLU(),
-                nn.Conv2d(64, 64, 3, stride=1),       nn.ReLU(),
-            )
-            self.head = nn.Sequential(
-                nn.Flatten(),
-                nn.Linear(64 * 12 * 12, hidden), nn.ReLU(),
-                nn.Linear(hidden, action_space),
-            )
-
-        def forward(self, frame: torch.Tensor) -> torch.Tensor:
-            x = self.encoder(frame)
-            x = self.head(x)
-            return x
+            return rwd_dmg, rwd_hit_taken, rwd_frag
 
 
     from doom_arena import VizdoomMPEnv
@@ -184,14 +233,20 @@ if __name__ == "__main__":
     )
 
     in_channels = env.observation_space.shape[0]  # 1 if grayscale, else 3/4
-    model = DQN(
+    # model = DQN(
+    #     input_dim=in_channels,
+    #     action_space=env.action_space.n,
+    #     hidden=64,  # change or ignore
+    # ).to(device, dtype=DTYPE)
+
+    model = ResNetDuelingDQN(
         input_dim=in_channels,
         action_space=env.action_space.n,
-        hidden=64,  # change or ignore
+        hidden=512, # A hidden size of 512 is common for ResNet
     ).to(device, dtype=DTYPE)
 
-    if os.path.exists(LOAD_CHECKPOINT_PATH):
-        model.load_state_dict(torch.load(LOAD_CHECKPOINT_PATH, map_location=device))
+    # if os.path.exists(LOAD_CHECKPOINT_PATH):
+    #     model.load_state_dict(torch.load(LOAD_CHECKPOINT_PATH, map_location=device))
 
     from copy import deepcopy
     model_tgt  = deepcopy(model).to(device)
@@ -220,6 +275,9 @@ if __name__ == "__main__":
     )
 
     os.makedirs("checkpoints", exist_ok=True)
+
+    run.log({"bots": NUM_BOTS})
+    run.log({"lr": LEARNING_RATE})
 
     for episode in range(EPISODES):
         # TODO(mahdi): rename obs, what does it mean?
