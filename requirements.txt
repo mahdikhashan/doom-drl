@@ -1,0 +1,11 @@
+torch
+numpy
+matplotlib
+pandas
+einops
+pillow
+vizdoom
+gymnasium>=0.29
+portpicker
+onnx
+onnx2pytorch
