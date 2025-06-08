@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/root/user/doom-drl/doom.py", line 98, in <module>
+    from doom_arena.reward import VizDoomReward
+ModuleNotFoundError: No module named 'doom_arena'

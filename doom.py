@@ -202,6 +202,16 @@ if __name__ == "__main__":
     import torch.nn.functional as F
     import torch.optim as optim
 
+    run = wandb.init(
+        entity="nano-apps",
+        project="doom-rl",
+        config={
+            "learning_rate": LEARNING_RATE,
+            "architecture": "CNN",
+            "episodes": EPISODES,
+        },
+    )
+
     for episode in range(EPISODES):
         # TODO(mahdi): rename obs, what does it mean?
         obs = env.reset()[0]
@@ -218,6 +228,7 @@ if __name__ == "__main__":
             gv, gv_pre = env.envs[0].unwrapped._game_vars, env.envs[0].unwrapped._game_vars_pre
             a, b, c = reward_fn(gv, gv_pre)
             custom_rwd = a + b + c
+            run.log({"custom_rwd": custom_rwd})
 
             # work on replay buffer
             # TODO(mahdi): there could be a problem here
@@ -247,7 +258,10 @@ if __name__ == "__main__":
                 loss.backward()
                 optimizer.step()
             update_ema(model_tgt, model)
+            run.log({"loss": loss.item()})
 
         scheduler.step()
         epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
         print(f"Ep {episode+1:03}: return {ep_return:6.1f}  |  ε {epsilon:.3f}")
+
+    run.finish()
