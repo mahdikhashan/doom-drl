@@ -89,6 +89,42 @@ class DQN(nn.Module):
         return x
 
 
+class DuelingDQN(nn.Module):
+    def __init__(self, input_dim: int, action_space: int, hidden: int = 128):
+        super().__init__()
+        
+        self.encoder = nn.Sequential(
+            nn.Conv2d(input_dim, 32, 8, stride=4), nn.ReLU(),
+            nn.Conv2d(32, 64, 4, stride=2),       nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=1),       nn.ReLU(),
+            nn.Flatten(),
+        )
+
+        flattened_size = 11264
+
+        self.value_stream = nn.Sequential(
+            nn.Linear(flattened_size, hidden),
+            nn.ReLU(),
+            nn.Linear(hidden, 1)
+        )
+
+        self.advantage_stream = nn.Sequential(
+            nn.Linear(flattened_size, hidden),
+            nn.ReLU(),
+            nn.Linear(hidden, action_space)
+        )
+
+    def forward(self, frame: torch.Tensor) -> torch.Tensor:
+        features = self.encoder(frame)
+
+        values = self.value_stream(features)
+        advantages = self.advantage_stream(features)
+
+        q_values = values + (advantages - advantages.mean(dim=1, keepdim=True))
+        
+        return q_values
+
+
 @torch.no_grad
 def epsilon_greedy(
     env: Env,
@@ -164,19 +200,19 @@ if __name__ == "__main__":
     }
 
     N_STACK_FRAMES = 1
-    NUM_BOTS = 1
+    NUM_BOTS = 4
     EPISODE_TIMEOUT = 1000
     # TODO: model hyperparams
     GAMMA = 0.99
-    EPISODES = 10
+    EPISODES = 2000
     BATCH_SIZE = 32
     REPLAY_BUFFER_SIZE = 10_000
-    LEARNING_RATE = 1e-4
+    LEARNING_RATE = 1e-6
     EPSILON_START = 1.0
     EPSILON_END = 0.1
     EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
-    # LOAD_CHECKPOINT_PATH = "model_ep500_2_bot_lr1e_6.pt"
+    LOAD_CHECKPOINT_PATH = "model_ep500_2_bot_lr1e_6.pt"
 
     device = "cpu"
     DTYPE = torch.float32
@@ -239,19 +275,30 @@ if __name__ == "__main__":
     #     hidden=64,  # change or ignore
     # ).to(device, dtype=DTYPE)
 
-    model = ResNetDuelingDQN(
+    # model = ResNetDuelingDQN(
+    #     input_dim=in_channels,
+    #     action_space=env.action_space.n,
+    #     hidden=512, # A hidden size of 512 is common for ResNet
+    # ).to(device, dtype=DTYPE)
+
+    model = DuelingDQN(
         input_dim=in_channels,
         action_space=env.action_space.n,
-        hidden=512, # A hidden size of 512 is common for ResNet
+        hidden=128,
     ).to(device, dtype=DTYPE)
 
-    # if os.path.exists(LOAD_CHECKPOINT_PATH):
-    #     model.load_state_dict(torch.load(LOAD_CHECKPOINT_PATH, map_location=device))
+    if os.path.exists(LOAD_CHECKPOINT_PATH):
+        pretrained_dict = torch.load(LOAD_CHECKPOINT_PATH, map_location=device)
+        encoder_weights = {k: v for k, v in pretrained_dict.items() if k.startswith('encoder.')}
+        model_dict = model.state_dict()
+        model_dict.update(encoder_weights)
+        model.load_state_dict(model_dict)
+
 
     from copy import deepcopy
     model_tgt  = deepcopy(model).to(device)
 
-    optimizer  = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer  = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
     scheduler  = torch.optim.lr_scheduler.ExponentialLR(optimizer, GAMMA)
 
     epsilon = 1.0
