@@ -1,0 +1,152 @@
+nohup: ignoring input
+wandb: Currently logged in as: mahdikhashan1 (nano-apps) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+/usr/local/lib/python3.11/dist-packages/wandb/analytics/sentry.py:259: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}  # noqa
+/usr/local/lib/python3.11/dist-packages/wandb/analytics/sentry.py:259: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}  # noqa
+wandb: Tracking run with wandb version 0.19.11
+wandb: Run data is saved locally in /root/user/doom-drl/wandb/run-20250609_094940-8925g04q
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run wandering-capybara-25
+wandb: ⭐️ View project at https://wandb.ai/nano-apps/doom-rl
+wandb: 🚀 View run at https://wandb.ai/nano-apps/doom-rl/runs/8925g04q
+Host 41243
+Player 41243
+Ep 001: return  981.7  |  ε 1.000
+Ep 002: return  -35.0  |  ε 0.999
+Ep 003: return  -11.0  |  ε 0.999
+Ep 004: return  -16.1  |  ε 0.998
+Ep 005: return   -7.4  |  ε 0.998
+Ep 006: return  -18.8  |  ε 0.997
+Ep 007: return   -7.0  |  ε 0.997
+Ep 008: return  970.0  |  ε 0.996
+Ep 009: return   -7.3  |  ε 0.996
+Ep 010: return   -7.0  |  ε 0.995
+Ep 011: return  -26.1  |  ε 0.995
+Ep 012: return   -7.7  |  ε 0.994
+Ep 013: return    5.9  |  ε 0.994
+Ep 014: return  -19.9  |  ε 0.993
+Ep 015: return  -16.7  |  ε 0.993
+Ep 016: return  -17.9  |  ε 0.992
+Ep 017: return    0.0  |  ε 0.992
+Ep 018: return  -24.9  |  ε 0.991
+Ep 019: return   -1.1  |  ε 0.991
+Ep 020: return  935.6  |  ε 0.990
+Ep 021: return  926.5  |  ε 0.990
+Ep 022: return   -3.6  |  ε 0.989
+Ep 023: return   -3.6  |  ε 0.989
+Ep 024: return  966.9  |  ε 0.988
+Ep 025: return  923.7  |  ε 0.988
+Ep 026: return   15.9  |  ε 0.987
+Ep 027: return  970.4  |  ε 0.987
+Ep 028: return   -6.2  |  ε 0.986
+Ep 029: return   -8.3  |  ε 0.986
+Ep 030: return  949.7  |  ε 0.985
+Ep 031: return  916.2  |  ε 0.985
+Ep 032: return  -16.7  |  ε 0.984
+Ep 033: return  908.1  |  ε 0.984
+Ep 034: return    0.0  |  ε 0.983
+Ep 035: return  -30.8  |  ε 0.983
+Ep 036: return    1.3  |  ε 0.982
+Ep 037: return  -11.4  |  ε 0.982
+Ep 038: return    0.0  |  ε 0.981
+Ep 039: return   -8.6  |  ε 0.981
+Ep 040: return    9.4  |  ε 0.980
+Ep 041: return   -9.4  |  ε 0.980
+Ep 042: return   -3.7  |  ε 0.979
+Ep 043: return  947.9  |  ε 0.979
+Ep 044: return    1.6  |  ε 0.978
+Ep 045: return  -25.1  |  ε 0.978
+Ep 046: return  952.8  |  ε 0.977
+Ep 047: return  960.0  |  ε 0.977
+Ep 048: return    0.0  |  ε 0.976
+Ep 049: return    0.0  |  ε 0.976
+Ep 050: return    0.0  |  ε 0.975
+Ep 051: return  -13.5  |  ε 0.975
+Ep 052: return    0.0  |  ε 0.974
+Ep 053: return  941.7  |  ε 0.974
+Ep 054: return  -15.0  |  ε 0.973
+Ep 055: return    8.5  |  ε 0.973
+Ep 056: return    0.0  |  ε 0.972
+Ep 057: return   32.7  |  ε 0.972
+Ep 058: return  944.1  |  ε 0.971
+Ep 059: return  -29.2  |  ε 0.971
+Ep 060: return  951.1  |  ε 0.970
+Ep 061: return   -8.8  |  ε 0.970
+Ep 062: return  -46.9  |  ε 0.969
+Ep 063: return  -41.8  |  ε 0.969
+Ep 064: return  972.9  |  ε 0.968
+Ep 065: return  954.9  |  ε 0.968
+Ep 066: return  941.8  |  ε 0.968
+Ep 067: return  -17.9  |  ε 0.967
+Ep 068: return  953.2  |  ε 0.967
+Ep 069: return  -10.0  |  ε 0.966
+Ep 070: return  -11.0  |  ε 0.966
+Ep 071: return   15.3  |  ε 0.965
+Ep 072: return   -5.0  |  ε 0.965
+Ep 073: return  967.2  |  ε 0.964
+Ep 074: return    0.0  |  ε 0.964
+Ep 075: return  904.0  |  ε 0.963
+Ep 076: return  973.9  |  ε 0.963
+Ep 077: return  977.3  |  ε 0.962
+Ep 078: return  -30.6  |  ε 0.962
+Ep 079: return    0.0  |  ε 0.961
+Ep 080: return  -28.7  |  ε 0.961
+Ep 081: return  -19.9  |  ε 0.960
+Ep 082: return  -28.0  |  ε 0.960
+Ep 083: return   -2.6  |  ε 0.959
+Ep 084: return  968.7  |  ε 0.959
+Ep 085: return   -6.6  |  ε 0.958
+Ep 086: return    0.0  |  ε 0.958
+Ep 087: return  -25.4  |  ε 0.957
+Ep 088: return  -38.1  |  ε 0.957
+Ep 089: return  946.1  |  ε 0.956
+Ep 090: return  129.6  |  ε 0.956
+Ep 091: return  947.8  |  ε 0.956
+Ep 092: return  -50.7  |  ε 0.955
+Ep 093: return  -12.1  |  ε 0.955
+Ep 094: return  -17.0  |  ε 0.954
+Ep 095: return    4.0  |  ε 0.954
+Ep 096: return  -10.4  |  ε 0.953
+Ep 097: return  -33.4  |  ε 0.953
+Ep 098: return   -9.6  |  ε 0.952
+Ep 099: return  -41.4  |  ε 0.952
+Ep 100: return  -17.0  |  ε 0.951
+--- Logged checkpoint to W&B at episode 100 ---
+Ep 101: return  935.8  |  ε 0.951
+Ep 102: return  -13.9  |  ε 0.950
+Ep 103: return   -9.5  |  ε 0.950
+Ep 104: return    0.0  |  ε 0.949
+Ep 105: return  -26.7  |  ε 0.949
+Ep 106: return    0.0  |  ε 0.948
+Ep 107: return  -26.5  |  ε 0.948
+Ep 108: return  -24.0  |  ε 0.947
+Ep 109: return    7.0  |  ε 0.947
+Ep 110: return  -12.5  |  ε 0.946
+Ep 111: return   -4.7  |  ε 0.946
+Ep 112: return  -12.5  |  ε 0.946
+Ep 113: return   -7.2  |  ε 0.945
+Ep 114: return  -36.0  |  ε 0.945
+Ep 115: return    0.0  |  ε 0.944
+Ep 116: return  -20.9  |  ε 0.944
+Ep 117: return  947.9  |  ε 0.943
+Ep 118: return  935.0  |  ε 0.943
+Ep 119: return  -51.9  |  ε 0.942
+Ep 120: return  958.0  |  ε 0.942
+Ep 121: return  957.2  |  ε 0.941
+Ep 122: return  957.7  |  ε 0.941
+Ep 123: return   -3.6  |  ε 0.940
+Traceback (most recent call last):
+  File "/root/user/doom-drl/doom.py", line 364, in <module>
+    next_obs, rwd_raw, done, _ = env.step(act)
+                                 ^^^^^^^^^^^^^
+  File "/root/user/doom-drl/doom_arena/doom_env.py", line 484, in step
+    obs, vizdoom_rwds, dones, info = self.env.step(actions)
+                                     ^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/user/doom-drl/doom_arena/doom_env.py", line 198, in step
+    rwd = self.game.make_action(action, tics=self.frame_skip)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vizdoom.vizdoom.SignalException: Signal SIGINT received. ViZDoom instance has been closed.
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33mwandering-capybara-25[0m at: [34mhttps://wandb.ai/nano-apps/doom-rl/runs/8925g04q[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20250609_094940-8925g04q/logs[0m
