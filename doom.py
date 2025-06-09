@@ -373,7 +373,7 @@ if __name__ == "__main__":
 
         if len(replay_buffer) >= BATCH_SIZE:
             model.train()
-            loss = []
+            _loss = []
             for _ in range(N_EPOCHS):
                 batch = random.sample(replay_buffer, BATCH_SIZE)
                 s, a, r, s2, d = zip(*batch)
@@ -392,12 +392,12 @@ if __name__ == "__main__":
 
                 optimizer.zero_grad()
                 loss.backward()
-                loss.append(loss.item())
+                _loss.append(loss.item())
                 run.log({"loss/epoch": loss.item()})
                 optimizer.step()
             update_ema(model_tgt, model)
-            run.log({"avg loss/episode": sum(loss)/len(loss)})
-            run.log({"sum loss/episode": sum(loss)})
+            run.log({"avg loss/episode": sum(_loss)/len(_loss)})
+            run.log({"sum loss/episode": sum(_loss)})
 
         scheduler.step()
         epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
