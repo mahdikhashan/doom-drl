@@ -200,11 +200,11 @@ if __name__ == "__main__":
     }
 
     N_STACK_FRAMES = 1
-    NUM_BOTS = 4
+    NUM_BOTS = 1
     EPISODE_TIMEOUT = 1000
     # TODO: model hyperparams
     GAMMA = 0.99
-    EPISODES = 2000
+    EPISODES = 1000
     BATCH_SIZE = 32
     REPLAY_BUFFER_SIZE = 10_000
     LEARNING_RATE = 1e-6
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     EPSILON_END = 0.1
     EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
-    LOAD_CHECKPOINT_PATH = "model_ep500_2_bot_lr1e_6.pt"
+    LOAD_CHECKPOINT_PATH = "model_ep100_DQN_dueling_1_bot.pt"
 
     device = "cpu"
     DTYPE = torch.float32
