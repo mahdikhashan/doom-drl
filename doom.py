@@ -346,6 +346,7 @@ if __name__ == "__main__":
 
     run.log({"bots": NUM_BOTS})
     run.log({"lr": LEARNING_RATE})
+    best_eval_return = float("-inf")
 
     for episode in range(EPISODES):
         # TODO(mahdi): rename obs, what does it mean?
@@ -424,6 +425,17 @@ if __name__ == "__main__":
 
             run.log_artifact(artifact)
             print(f"--- Logged checkpoint to W&B at episode {episode+1} ---")
+        # eval
+        eval_obs, done, eval_return = env.reset()[0], False, 0.0
+        model.eval()
+        while not done:
+            act = epsilon_greedy(env, model, eval_obs, 0.05, device, DTYPE)
+            eval_obs_n, r, done, _ = env.step(act)
+            eval_obs = eval_obs_n[0]
+            eval_return += r[0]
+        run.log({"episode/eval": eval_return})
+        if eval_return > best_eval_return:
+            best_eval_return, _ = eval_return, deepcopy(model)
 
 
     run.finish()
