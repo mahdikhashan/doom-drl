@@ -205,7 +205,7 @@ if __name__ == "__main__":
     EPSILON_END = 0.1
     EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
-    LOAD_CHECKPOINT_PATH = "model_ep100_2_bot_fine_tuned_2000_steps_DQN_Dueling.pt"
+    LOAD_CHECKPOINT_PATH = "best_model.pt"
 
     device = "cpu"
     DTYPE = torch.float32
@@ -331,7 +331,6 @@ if __name__ == "__main__":
     import random
     
     import torch.nn.functional as F
-    import torch.optim as optim
 
     run = wandb.init(
         entity="nano-apps",
@@ -373,6 +372,7 @@ if __name__ == "__main__":
 
         if len(replay_buffer) >= BATCH_SIZE:
             model.train()
+            loss = []
             for _ in range(N_EPOCHS):
                 batch = random.sample(replay_buffer, BATCH_SIZE)
                 s, a, r, s2, d = zip(*batch)
@@ -391,9 +391,12 @@ if __name__ == "__main__":
 
                 optimizer.zero_grad()
                 loss.backward()
+                loss.append(loss.item())
+                run.log({"loss/epoch": loss.item()})
                 optimizer.step()
             update_ema(model_tgt, model)
-            run.log({"loss": loss.item()})
+            run.log({"avg loss/episode": sum(loss)/len(loss)})
+            run.log({"sum loss/episode": sum(loss)})
 
         scheduler.step()
         epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
