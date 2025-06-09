@@ -1,0 +1,12 @@
+nohup: ignoring input
+wandb: Currently logged in as: mahdikhashan1 (nano-apps) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+/usr/local/lib/python3.11/dist-packages/wandb/analytics/sentry.py:259: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}  # noqa
+/usr/local/lib/python3.11/dist-packages/wandb/analytics/sentry.py:259: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}  # noqa
+wandb: Tracking run with wandb version 0.19.11
+wandb: Run data is saved locally in /root/user/doom-drl/wandb/run-20250609_090626-1lem30cp
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run winter-silence-24
+wandb: ⭐️ View project at https://wandb.ai/nano-apps/doom-rl
+wandb: 🚀 View run at https://wandb.ai/nano-apps/doom-rl/runs/1lem30cp

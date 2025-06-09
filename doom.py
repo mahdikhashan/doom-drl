@@ -88,7 +88,6 @@ class DQN(nn.Module):
         x = self.head(x)
         return x
 
-
 class DuelingDQN(nn.Module):
     def __init__(self, input_dim: int, action_space: int, hidden: int = 128):
         super().__init__()
@@ -201,7 +200,7 @@ if __name__ == "__main__":
 
     N_STACK_FRAMES = 1
     NUM_BOTS = 1
-    EPISODE_TIMEOUT = 1000
+    EPISODE_TIMEOUT = 2000
     # TODO: model hyperparams
     GAMMA = 0.99
     EPISODES = 1000
@@ -212,13 +211,44 @@ if __name__ == "__main__":
     EPSILON_END = 0.1
     EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
-    LOAD_CHECKPOINT_PATH = "model_ep100_DQN_dueling_1_bot.pt"
+    LOAD_CHECKPOINT_PATH = "model_ep1000_1_bot_lr1e_6_DQN_Dueling.pt"
 
     device = "cpu"
     DTYPE = torch.float32
 
     from doom_arena.reward import VizDoomReward
     from typing import Dict, Tuple
+
+    class RewardHealth(VizDoomReward):
+        def __init__(self, num_players: int):
+            super().__init__(num_players)
+
+        def __call__(
+            self,
+            vizdoom_reward: float,
+            game_var: Dict[str, float],
+            game_var_old: Dict[str, float],
+            player_id: int,
+        ) -> Tuple[float, float, float]:
+            """
+            Custom reward function used by both training and evaluation.
+            *  +100  for every new frag
+            *  +2    for every hit landed
+            *  -0.1  for every hit taken
+            """
+            self._step += 1
+            _ = vizdoom_reward, player_id  # unused
+
+            # rwd_hit = 2.0 * (game_var["HITCOUNT"] - game_var_old["HITCOUNT"])
+            rwd_dmg = 1.0 * (game_var.get("DAMAGECOUNT", 0.0) - game_var_old.get("DAMAGECOUNT", 0.0))
+            rwd_hit_taken = -0.1 * (game_var["HITS_TAKEN"] - game_var_old["HITS_TAKEN"])
+            rwd_frag = 100.0 * (game_var["FRAGCOUNT"] - game_var_old["FRAGCOUNT"])
+
+            # health related variables
+            health_lost_penalty = 0.5 * min(0, game_var.get("HEALTH", 0.0) - game_var_old.get("HEALTH", 0.0))
+            health_gain_reward = 10.0 * max(0, game_var.get("HEALTH", 0.0) - game_var_old.get("HEALTH", 0.0))
+
+            return rwd_dmg, rwd_hit_taken, rwd_frag, health_lost_penalty, health_gain_reward
 
     class YourReward(VizDoomReward):
         def __init__(self, num_players: int):
@@ -247,10 +277,9 @@ if __name__ == "__main__":
 
             return rwd_dmg, rwd_hit_taken, rwd_frag
 
-
     from doom_arena import VizdoomMPEnv
 
-    reward_fn = YourReward(num_players=1)
+    reward_fn = RewardHealth(num_players=1)
 
     env = VizdoomMPEnv(
         num_players=1,
@@ -288,12 +317,11 @@ if __name__ == "__main__":
     ).to(device, dtype=DTYPE)
 
     if os.path.exists(LOAD_CHECKPOINT_PATH):
-        pretrained_dict = torch.load(LOAD_CHECKPOINT_PATH, map_location=device)
-        encoder_weights = {k: v for k, v in pretrained_dict.items() if k.startswith('encoder.')}
-        model_dict = model.state_dict()
-        model_dict.update(encoder_weights)
-        model.load_state_dict(model_dict)
-
+        # pretrained_dict = torch.load(LOAD_CHECKPOINT_PATH, map_location=device)
+        # encoder_weights = {k: v for k, v in pretrained_dict.items() if k.startswith('encoder.')}
+        # model_dict = model.state_dict()
+        # model_dict.update(encoder_weights)
+        model.load_state_dict(torch.load(LOAD_CHECKPOINT_PATH, map_location=device))
 
     from copy import deepcopy
     model_tgt  = deepcopy(model).to(device)
