@@ -963,10 +963,10 @@ def make_env(seed, config) -> VizdoomMPEnv:
         bot_skill=0,
         doom_map="ROOM",
         episode_timeout=5000,
-        n_stack_frames=config["n_stack_frames"],
+        n_stack_frames=1,
         extra_state=extra_state,
-        hud=config["hud"],
-        crosshair=config["crosshair"],
+        hud="none",
+        crosshair=True,
         seed=seed,
     )
     return env
@@ -983,10 +983,10 @@ class Agent:
         logits = self.model(frames)
         if isinstance(logits, tuple):
             logits, _ = logits
-        if "algo_type" not in self.config or self.config["algo_type"] == "POLICY":
-            act = Categorical(logits=logits).sample()
-        else:
-            act = logits.argmax(-1)
+        # if "algo_type" not in self.config or self.config["algo_type"] == "POLICY":
+        #     act = Categorical(logits=logits).sample()
+        # else:
+        act = logits.argmax(-1)
         return act.cpu().numpy()[0]
 
 
@@ -1000,6 +1000,7 @@ def run_episode(agent: Agent, seed: int = 1024):
         with torch.no_grad():
             action = agent.select_action(obs)
         obs, rwd, done, _ = env.step(action)
+        print(f"eps rwd: {rwd}")
         score += rwd[0]
     env.close()
     return score
@@ -1013,16 +1014,70 @@ if __name__ == "__main__":
     model_file = args.submission
     n_episodes = args.episodes
 
-    # Load model
-    model = onnx.load(model_file)
-    config = next(
-        (json.loads(p.value) for p in model.metadata_props if p.key == "config"), {}
-    )
+    import torch.nn as nn
 
-    model = ConvertModel(model)
+    class DuelingDQN(nn.Module):
+        def __init__(self, input_dim: int, action_space: int, hidden: int = 128):
+            super().__init__()
+            self.encoder = nn.Sequential(
+                nn.Conv2d(input_dim, 32, 8, stride=4), nn.ReLU(),
+                nn.Conv2d(32, 64, 4, stride=2),       nn.ReLU(),
+                nn.Conv2d(64, 64, 3, stride=1),       nn.ReLU(),
+                nn.Flatten(),
+            )
+            flattened_size = 9216
+            self.value_stream = nn.Sequential(
+                nn.Linear(flattened_size, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, 1)
+            )
+            self.advantage_stream = nn.Sequential(
+                nn.Linear(flattened_size, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, action_space)
+            )
+
+        def forward(self, frame: torch.Tensor) -> torch.Tensor:
+            features = self.encoder(frame)
+
+            values = self.value_stream(features)
+            advantages = self.advantage_stream(features)
+
+            q_values = values + (advantages - advantages.mean(dim=1, keepdim=True))
+            
+            return q_values
+        
+    env = VizdoomMPEnv(
+        num_players=1,
+        num_bots=4,
+        bot_skill=0,
+        doom_map="ROOM",  # NOTE simple, small map; other options: TRNM, TRNMBIG
+        extra_state=["depth"],
+        episode_timeout=5000,
+        n_stack_frames=1,
+        crosshair=True,
+        hud="none",
+        screen_format=0,
+    )
+        
+    model = DuelingDQN(
+        input_dim=4,
+        action_space=env.action_space.n,
+        hidden=128,
+    ).to("cpu", dtype=DTYPE)
+
+    model.load_state_dict(torch.load("best_model.pt", map_location="cpu"))
+
+    # Load model
+    # model = onnx.load(model_file)
+    # config = next(
+    #     (json.loads(p.value) for p in model.metadata_props if p.key == "config"), {}
+    # )
+
+    # model = ConvertModel(model)
     model.eval()
     model = model.to(DEVICE, dtype=DTYPE)
-    agent = Agent(model, config, DEVICE)
+    agent = Agent(model, {"extra_state": ["depth"]}, DEVICE)
 
     # Evaluate model
     scores = []

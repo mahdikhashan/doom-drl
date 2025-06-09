@@ -91,22 +91,18 @@ class DQN(nn.Module):
 class DuelingDQN(nn.Module):
     def __init__(self, input_dim: int, action_space: int, hidden: int = 128):
         super().__init__()
-        
         self.encoder = nn.Sequential(
             nn.Conv2d(input_dim, 32, 8, stride=4), nn.ReLU(),
             nn.Conv2d(32, 64, 4, stride=2),       nn.ReLU(),
             nn.Conv2d(64, 64, 3, stride=1),       nn.ReLU(),
             nn.Flatten(),
         )
-
         flattened_size = 9216
-
         self.value_stream = nn.Sequential(
             nn.Linear(flattened_size, hidden),
             nn.ReLU(),
             nn.Linear(hidden, 1)
         )
-
         self.advantage_stream = nn.Sequential(
             nn.Linear(flattened_size, hidden),
             nn.ReLU(),
