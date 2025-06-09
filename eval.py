@@ -986,8 +986,8 @@ class Agent:
         # if "algo_type" not in self.config or self.config["algo_type"] == "POLICY":
         #     act = Categorical(logits=logits).sample()
         # else:
-        act = logits.argmax(-1)
-        return act.cpu().numpy()[0]
+        act = logits.argmax().item()
+        return act
 
 
 def run_episode(agent: Agent, seed: int = 1024):
@@ -1000,7 +1000,7 @@ def run_episode(agent: Agent, seed: int = 1024):
         with torch.no_grad():
             action = agent.select_action(obs)
         obs, rwd, done, _ = env.step(action)
-        print(f"eps rwd: {rwd}")
+        # print(f"eps rwd: {rwd}")
         score += rwd[0]
     env.close()
     return score
@@ -1046,14 +1046,14 @@ if __name__ == "__main__":
             q_values = values + (advantages - advantages.mean(dim=1, keepdim=True))
             
             return q_values
-        
+
     env = VizdoomMPEnv(
         num_players=1,
         num_bots=4,
         bot_skill=0,
         doom_map="ROOM",  # NOTE simple, small map; other options: TRNM, TRNMBIG
         extra_state=["depth"],
-        episode_timeout=5000,
+        episode_timeout=2000,
         n_stack_frames=1,
         crosshair=True,
         hud="none",
@@ -1066,7 +1066,7 @@ if __name__ == "__main__":
         hidden=128,
     ).to("cpu", dtype=DTYPE)
 
-    model.load_state_dict(torch.load("best_model.pt", map_location="cpu"))
+    model.load_state_dict(torch.load("model_ep100_2_bot_fine_tuned_2000_steps_DQN_Dueling.pt", map_location="cpu"))
 
     # Load model
     # model = onnx.load(model_file)
