@@ -100,7 +100,7 @@ class DuelingDQN(nn.Module):
             nn.Flatten(),
         )
 
-        flattened_size = 11264
+        flattened_size = 9216
 
         self.value_stream = nn.Sequential(
             nn.Linear(flattened_size, hidden),
