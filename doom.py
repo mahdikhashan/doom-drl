@@ -193,7 +193,7 @@ if __name__ == "__main__":
         # NOTE: "algo_type" defaults to POLICY in evaluation script!
         "algo_type": "QVALUE",  # OPTIONAL, change to POLICY if using policy-based (eg PPO)
         "n_stack_frames": 1,
-        "extra_state": ["depth", "labels"],
+        "extra_state": ["depth"],
         "hud": "none",
         "crosshair": True,
         "screen_format": 8 if USE_GRAYSCALE else 0,
