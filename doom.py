@@ -123,7 +123,6 @@ class DuelingDQN(nn.Module):
         
         return q_values
 
-
 @torch.no_grad
 def epsilon_greedy(
     env: Env,
@@ -155,7 +154,6 @@ def update_ema(ema_model, model, decay: float = 0.995):
 
     for name, param in model_params.items():
         ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
-
 
 def onnx_dump(env, model, config, filename: str):
     import onnx
@@ -199,11 +197,11 @@ if __name__ == "__main__":
     }
 
     N_STACK_FRAMES = 1
-    NUM_BOTS = 1
+    NUM_BOTS = 4
     EPISODE_TIMEOUT = 2000
     # TODO: model hyperparams
     GAMMA = 0.99
-    EPISODES = 1000
+    EPISODES = 200
     BATCH_SIZE = 32
     REPLAY_BUFFER_SIZE = 10_000
     LEARNING_RATE = 1e-6
@@ -211,7 +209,7 @@ if __name__ == "__main__":
     EPSILON_END = 0.1
     EPSILON_DECAY = 0.9995
     N_EPOCHS = 50
-    LOAD_CHECKPOINT_PATH = "model_ep1000_1_bot_lr1e_6_DQN_Dueling.pt"
+    LOAD_CHECKPOINT_PATH = "model_ep100_2_bot_fine_tuned_2000_steps_DQN_Dueling.pt"
 
     device = "cpu"
     DTYPE = torch.float32
