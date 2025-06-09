@@ -1,0 +1,22 @@
+[project]
+name = "doom"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.7.0",
+    "gymnasium>=0.29",
+    "pip>=25.1.1",
+    "numpy>=2.2.6",
+    "matplotlib>=3.10.3",
+    "pandas>=2.3.0",
+    "einops>=0.8.1",
+    "pillow>=11.2.1",
+    "vizdoom>=1.2.4",
+    "portpicker>=1.6.0",
+    "onnx>=1.18.0",
+    "onnx2pytorch>=0.5.1",
+    "gym>=0.26.2",
+    "ffmpeg-python>=0.2.0",
+]
